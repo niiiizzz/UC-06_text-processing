@@ -286,9 +286,24 @@ function TopBar({
           <div style={{ width: 1, height: 20, background: "var(--line)" }} />
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <PlanChip plan={sub.plan} />
-            {sub.plan === "Basic" && sub.role === "Operator" && (
-              <button className="btn btn-sm btn-primary" onClick={onUpgrade} style={{ fontSize: 11.5 }}>
-                Upgrade to Pro
+            {sub.plan === "Basic" && (
+              <button
+                className="btn btn-sm btn-primary"
+                onClick={onUpgrade}
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: "linear-gradient(135deg, var(--ochre-500, #c28a2c) 0%, #b47b22 100%)",
+                  border: "none",
+                  color: "#ffffff",
+                  boxShadow: "0 2px 6px rgba(194, 138, 44, 0.25)",
+                  padding: "6px 12px",
+                }}
+              >
+                <span>⚡ Upgrade plan</span>
               </button>
             )}
           </div>
@@ -844,6 +859,8 @@ export function App() {
           }}
           currentPlan={sub?.plan}
           userRole={sub?.role}
+          tenantName={sub?.tenant?.name}
+          userEmail={sub?.role === "Operator" ? "operator@textforge.test" : "viewer@textforge.test"}
         />
       )}
     </div>
