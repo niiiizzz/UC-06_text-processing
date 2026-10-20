@@ -229,6 +229,34 @@ UC-06_text-processing/
 
 ---
 
+## 📦 Container Image Published to Azure Container Registry
+
+The production-ready, multi-stage TextForge container image has been successfully built and pushed to the Azure Container Registry (`acrtextforge.azurecr.io`).
+
+- **Registry**: `acrtextforge.azurecr.io`
+- **Image**: `textforge:latest`
+- **Build Mechanism**: Cloud-native remote container build via Azure CLI (`az acr build`).
+- **Telemetry & Verification**: Push counts and image lifecycle actively tracked in Azure Monitor metrics.
+
+<div align="center">
+  <img src="docs/assets/acr_metrics.png" alt="Azure Container Registry - Image Push & Storage Metrics" width="850" />
+  <p><em>Azure Container Registry Metrics showing successful image push count to <code>acrtextforge</code>.</em></p>
+</div>
+
+---
+
+## 🚀 Deployed to Azure Container Apps
+
+The monolithic application (FastAPI core + built React 18 production bundle) is provisioned and deployed to **Azure Container Apps** using declarative Terraform configuration.
+
+- **Container App Resource**: `textforge-dev`
+- **Environment**: Managed Container Apps Environment (`cae`)
+- **Ingress**: External HTTPS enabled on port `8000` with 100% traffic allocation to latest revision
+- **Identity & Security**: User-Assigned Managed Identity (`id`) accessing private ACR and Azure SQL
+- **Health Verification**: Passing automated `/health` liveness and readiness probes
+
+---
+
 ## ⚖️ License & Hackathon Context
 
 Built for the **Advantix × Rajalakshmi Engineering Challenge** · Use Case 06 (Text Processing SaaS).  
