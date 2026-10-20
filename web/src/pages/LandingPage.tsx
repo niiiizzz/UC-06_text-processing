@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BRAND_NAME, BRAND_TAGLINE } from "../brand";
 
 interface LandingPageProps {
@@ -6,366 +6,323 @@ interface LandingPageProps {
   onOpenWorkspace: () => void;
 }
 
+const NAV_LINKS = ["Product", "Pricing", "FAQ"];
+
+const RULES = [
+  { id: "R1", field: "record_id", desc: "≤ 20 chars · strictly unique · case-sensitive" },
+  { id: "R2", field: "text",      desc: "1–80 printable ASCII · trailing whitespace trimmed" },
+  { id: "R3", field: "repeat",    desc: "strict int 1–3 · bools and numeric strings rejected" },
+  { id: "R4", field: "mode",      desc: "exact enum: UPPER or LOWER" },
+];
+
+const STEPS = [
+  { n: "01", title: "Submit a batch", body: "Send 1–10 rows. Each carries a unique ID, text body, repeat count, and transformation mode. A single Idempotency-Key covers the whole batch." },
+  { n: "02", title: "Rules enforced atomically", body: "Every failure returns the exact row, field, and rule ID. For Process, one invalid row blocks the whole batch — zero quota used." },
+  { n: "03", title: "Pro transforms and stores", body: "Validated rows are transformed server-side and persisted in private blob storage. Replay with the same key retrieves the original result free." },
+];
+
+const FAQS = [
+  { q: "What counts as a run?", a: "Every accepted run — whether it ultimately succeeds or fails during execution — uses one daily quota slot. Requests rejected for validation or authorization errors before acceptance do not count." },
+  { q: "What happens when a row is invalid?", a: "Validate runs accept the batch and return all issues with row index, field name, and rule ID. Process runs reject the entire batch if any row is invalid — HTTP 400, no quota used." },
+  { q: "Can I retry the same request safely?", a: "Yes. Use the same Idempotency-Key to replay a request — you get back the identical result with zero additional quota cost. Changing any field while reusing the key returns 409." },
+  { q: "Who can submit runs?", a: "Users with the Operator role submit runs and manage billing pledges. Viewers have read-only access to the run history and results." },
+  { q: "What is sandbox mode?", a: "TextForge runs in a sandboxed Azure Container App environment with synthetic demo accounts. All billing in Tier 2 uses test vouchers (BENCH-CLEAR, BENCH-DECLINE, etc.) — no real payments." },
+];
+
 export function LandingPage({ onSignIn, onOpenWorkspace }: LandingPageProps) {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [scrolled, setScrolled] = useState(false);
 
-  const toggleFaq = (idx: number) => {
-    setOpenFaq(openFaq === idx ? null : idx);
-  };
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 16);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-paper text-ink font-sans flex flex-col selection:bg-verdigris-100">
-      {/* 1. Top Bar */}
-      <header className="border-b border-line bg-card/80 backdrop-blur-sm sticky top-0 z-20 px-6 sm:px-12 py-3.5 flex justify-between items-center max-w-[1160px] mx-auto w-full">
-        <div className="flex items-center space-x-8">
-          <span className="font-serif text-2xl font-bold tracking-tight text-ink">
-            {BRAND_NAME.toLowerCase()}
-          </span>
-          <nav className="hidden md:flex space-x-6 text-sm text-ink-2">
-            <a href="#how-it-works" className="hover:text-ink transition-colors">
-              Product
-            </a>
-            <a href="#pricing" className="hover:text-ink transition-colors">
-              Pricing
-            </a>
-            <a href="#faq" className="hover:text-ink transition-colors">
-              FAQ
-            </a>
-          </nav>
-        </div>
+    <div style={{ minHeight: "100vh", background: "var(--paper)", color: "var(--ink)", fontFamily: "Inter, system-ui, sans-serif" }}>
 
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={onSignIn}
-            className="px-4 py-1.5 text-sm font-medium border border-line bg-card hover:bg-paper-2 rounded transition-colors text-ink shadow-sm"
-          >
-            Sign in
-          </button>
-          <button
-            onClick={onOpenWorkspace}
-            className="px-4 py-1.5 text-sm font-medium bg-verdigris-700 hover:bg-verdigris-800 text-card rounded transition-colors shadow-sm"
-          >
-            Open the workspace
-          </button>
+      {/* ── TOP BAR ── */}
+      <header style={{
+        position: "sticky", top: 0, zIndex: 20,
+        background: scrolled ? "rgba(251,248,242,0.92)" : "var(--card)",
+        backdropFilter: "blur(12px)",
+        borderBottom: "1px solid var(--line)",
+        transition: "box-shadow 0.2s",
+        boxShadow: scrolled ? "0 1px 12px rgba(29,27,23,.06)" : "none",
+      }}>
+        <div style={{ maxWidth: 1160, margin: "0 auto", padding: "0 32px", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 40 }}>
+            <span style={{ fontFamily: "'DM Serif Display', Georgia, serif", fontSize: 22, letterSpacing: "-0.02em", color: "var(--ink)" }}>
+              {BRAND_NAME.toLowerCase()}
+            </span>
+            <nav style={{ display: "flex", gap: 28 }}>
+              {NAV_LINKS.map(l => (
+                <a key={l} href={`#${l.toLowerCase()}`} style={{ fontSize: 13.5, color: "var(--ink-2)", textDecoration: "none", fontWeight: 500, transition: "color 0.15s" }}
+                  onMouseEnter={e => (e.target as HTMLElement).style.color = "var(--ink)"}
+                  onMouseLeave={e => (e.target as HTMLElement).style.color = "var(--ink-2)"}
+                >{l}</a>
+              ))}
+            </nav>
+          </div>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button className="btn btn-md btn-secondary" onClick={onSignIn}>Sign in</button>
+            <button className="btn btn-md btn-primary" onClick={onOpenWorkspace}>Open workspace →</button>
+          </div>
         </div>
       </header>
 
-      {/* Main Container */}
-      <main className="flex-1 max-w-[1160px] mx-auto w-full px-6 sm:px-12 py-12 md:py-16 space-y-24">
-        {/* 2. Hero (7/5 split) */}
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center pt-4">
-          <div className="lg:col-span-7 space-y-6">
-            <div className="inline-block px-2.5 py-0.5 text-xs font-mono font-medium tracking-wider uppercase bg-paper-2 border border-line text-ink-2 rounded">
-              Text processing for teams
+      {/* ── HERO ── */}
+      <section style={{ maxWidth: 1160, margin: "0 auto", padding: "80px 32px 96px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "7fr 5fr", gap: 64, alignItems: "center" }}>
+          {/* Left */}
+          <div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "4px 12px", background: "var(--paper-2)", border: "1px solid var(--line)", borderRadius: 20, marginBottom: 24 }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--verdigris-700)", display: "inline-block" }} />
+              <span style={{ fontSize: 11.5, fontFamily: "JetBrains Mono, monospace", color: "var(--ink-2)", fontWeight: 500 }}>Text processing for teams</span>
             </div>
-            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-normal tracking-tight text-ink leading-[1.08]">
+
+            <h1 style={{ fontFamily: "'DM Serif Display', Georgia, serif", fontSize: 58, lineHeight: 1.06, letterSpacing: "-0.02em", color: "var(--ink)", margin: "0 0 24px", maxWidth: 560 }}>
               {BRAND_TAGLINE}
             </h1>
-            <p className="text-ink-2 text-lg sm:text-xl font-normal leading-relaxed max-w-xl">
-              Validate batches of short text requests against clear rules. On Pro, transform them
-              and keep the result.
+
+            <p style={{ fontSize: 17, color: "var(--ink-2)", lineHeight: 1.65, maxWidth: 480, margin: "0 0 36px" }}>
+              Validate batches of short text against four precise rules.
+              On Pro, transform them and keep the results in private storage.
             </p>
-            <div className="flex flex-wrap items-center gap-4 pt-2">
-              <button
-                onClick={onOpenWorkspace}
-                className="px-5 py-2.5 text-base font-medium bg-verdigris-700 hover:bg-verdigris-800 text-card rounded transition-colors shadow-sm"
-              >
-                Open the workspace
+
+            <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+              <button className="btn btn-lg btn-primary" onClick={onOpenWorkspace}>
+                Open the workspace →
               </button>
-              <a
-                href="#how-it-works"
-                className="px-4 py-2.5 text-base font-medium text-ink-2 hover:text-ink hover:underline decoration-line underline-offset-4"
+              <a href="#product" style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 40, padding: "0 16px", fontSize: 14, color: "var(--ink-2)", textDecoration: "none", fontWeight: 500, borderRadius: "var(--radius)", border: "1px solid transparent", transition: "all 0.15s" }}
+                onMouseEnter={e => { (e.target as HTMLElement).style.color = "var(--ink)"; (e.target as HTMLElement).style.borderColor = "var(--line)"; }}
+                onMouseLeave={e => { (e.target as HTMLElement).style.color = "var(--ink-2)"; (e.target as HTMLElement).style.borderColor = "transparent"; }}
               >
-                See how it works ↓
+                How it works ↓
               </a>
             </div>
           </div>
 
-          {/* Right: Proof block */}
-          <div className="lg:col-span-5">
-            <div className="border border-line bg-card rounded shadow-raised p-5 space-y-4">
-              <div className="flex justify-between items-center border-b border-line pb-3">
-                <span className="font-mono text-xs uppercase tracking-wider text-ink-3">
-                  Sample Proof Block · Process
+          {/* Right — Proof block */}
+          <div>
+            <div style={{ background: "var(--night)", borderRadius: 12, padding: "20px 24px", border: "1px solid rgba(255,255,255,0.06)", boxShadow: "0 20px 60px -12px rgba(20,32,30,.5)" }}>
+              {/* Window chrome */}
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 16, paddingBottom: 14, borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+                <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#A4392B", opacity: 0.7 }} />
+                <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#C28A2C", opacity: 0.7 }} />
+                <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#55703A", opacity: 0.7 }} />
+                <span style={{ marginLeft: "auto", fontSize: 10, fontFamily: "JetBrains Mono, monospace", color: "rgba(255,255,255,0.25)" }}>
+                  POST /runs · 201 Succeeded
                 </span>
-                <span className="inline-flex items-center px-2 py-0.5 text-xs font-mono font-medium bg-moss-100 text-moss-600 rounded">
-                  201 Succeeded
-                </span>
               </div>
 
-              {/* Monospace output lines */}
-              <div className="space-y-2 font-mono text-sm bg-paper-2 p-4 rounded border border-line">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-ochre-500 font-bold">▌</span>
-                    <span className="text-ink font-semibold">HELLO HELLO</span>
-                  </div>
-                  <span className="text-ink-3 text-xs">len 11</span>
+              {/* Request snippet */}
+              <div style={{ marginBottom: 16, fontFamily: "JetBrains Mono, monospace", fontSize: 11.5, color: "rgba(255,255,255,0.4)", lineHeight: 1.7 }}>
+                <div><span style={{ color: "var(--ochre-500)" }}>operation</span>: <span style={{ color: "#9ecbff" }}>"process"</span></div>
+                <div><span style={{ color: "var(--ochre-500)" }}>records</span>: [</div>
+                <div style={{ paddingLeft: 14 }}>&nbsp;&#123; record_id: <span style={{ color: "#9ecbff" }}>"T01"</span>, text: <span style={{ color: "#9ecbff" }}>"Hello"</span>, repeat: 2, mode: <span style={{ color: "#9ecbff" }}>"UPPER"</span> &#125;</div>
+                <div style={{ paddingLeft: 14 }}>&nbsp;&#123; record_id: <span style={{ color: "#9ecbff" }}>"T02"</span>, text: <span style={{ color: "#9ecbff" }}>"world"</span>, repeat: 1, mode: <span style={{ color: "#9ecbff" }}>"LOWER"</span> &#125;</div>
+                <div>]</div>
+              </div>
+
+              <div style={{ height: 1, background: "rgba(255,255,255,0.06)", margin: "14px 0" }} />
+
+              {/* Proof output */}
+              <div style={{ marginBottom: 6, fontSize: 10, fontFamily: "JetBrains Mono, monospace", color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                Proof Output
+              </div>
+              {[{ out: "HELLO HELLO", len: 11 }, { out: "world", len: 5 }].map(r => (
+                <div key={r.out} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 0" }}>
+                  <span style={{ color: "var(--ochre-500)", fontSize: 14, lineHeight: 1 }}>▌</span>
+                  <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 14, fontWeight: 600, color: "white", flex: 1 }}>{r.out}</span>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontFamily: "JetBrains Mono, monospace" }}>len {r.len}</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-ochre-500 font-bold">▌</span>
-                    <span className="text-ink font-semibold">world</span>
-                  </div>
-                  <span className="text-ink-3 text-xs">len 5</span>
-                </div>
+              ))}
+              <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.06)", fontSize: 11, fontFamily: "JetBrains Mono, monospace", color: "rgba(255,255,255,0.3)" }}>
+                2 rows · 16 characters · Rules R1–R4 active
               </div>
-
-              <div className="text-xs text-ink-3 flex justify-between items-center pt-1 font-mono">
-                <span>Summary: 2 rows · 16 characters</span>
-                <span className="text-ink-2">Rules R1–R4 active</span>
-              </div>
-              <p className="text-xs text-ink-3 italic border-t border-line/60 pt-2">
-                Sample output. Rules R1–R4 shown below.
-              </p>
             </div>
-          </div>
-        </section>
-
-        {/* 3. Rules Strip (4 columns, mono) */}
-        <section className="border-t border-b border-line py-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 font-mono text-xs">
-            <div className="space-y-1">
-              <div className="text-ink font-bold">R1 · RECORD_ID</div>
-              <div className="text-ink-2">Length ≤ 20, unique per batch. Later duplicates fail.</div>
-            </div>
-            <div className="space-y-1">
-              <div className="text-ink font-bold">R2 · TEXT</div>
-              <div className="text-ink-2">1–80 ASCII characters. Trailing whitespace trimmed.</div>
-            </div>
-            <div className="space-y-1">
-              <div className="text-ink font-bold">R3 · REPEAT</div>
-              <div className="text-ink-2">Strict integer 1–3. Bools & numeric strings rejected.</div>
-            </div>
-            <div className="space-y-1">
-              <div className="text-ink font-bold">R4 · MODE</div>
-              <div className="text-ink-2">Exact enum: UPPER or LOWER. Case conversions applied.</div>
-            </div>
-          </div>
-        </section>
-
-        {/* 4. How it works (Numbered steps list) */}
-        <section id="how-it-works" className="space-y-8">
-          <div className="space-y-2">
-            <span className="text-xs font-mono tracking-wider uppercase text-ink-3">Workflow</span>
-            <h2 className="font-serif text-3xl font-normal text-ink">How it works</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 border-t border-line pt-6">
-            <div className="space-y-3">
-              <div className="font-serif text-2xl text-ochre-500 font-medium">01</div>
-              <h3 className="text-base font-semibold text-ink">Submit a batch</h3>
-              <p className="text-sm text-ink-2 leading-relaxed">
-                Provide 1 to 10 rows in a single batch. Each row specifies an ID, text, repeat count,
-                and transformation mode.
-              </p>
-            </div>
-            <div className="space-y-3">
-              <div className="font-serif text-2xl text-ochre-500 font-medium">02</div>
-              <h3 className="text-base font-semibold text-ink">Rules checked atomically</h3>
-              <p className="text-sm text-ink-2 leading-relaxed">
-                Every failure is reported with its row index, target field, and violated rule ID. If
-                any row fails on Process, none are accepted.
-              </p>
-            </div>
-            <div className="space-y-3">
-              <div className="font-serif text-2xl text-ochre-500 font-medium">03</div>
-              <h3 className="text-base font-semibold text-ink">Pro transforms and stores</h3>
-              <p className="text-sm text-ink-2 leading-relaxed">
-                Pro runs transform rows and store results in durable storage. Replay with the same key
-                returns the original run without debiting quota.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* 5. Plans (Two-column comparison) */}
-        <section id="pricing" className="space-y-8">
-          <div className="space-y-2">
-            <span className="text-xs font-mono tracking-wider uppercase text-ink-3">Plans</span>
-            <h2 className="font-serif text-3xl font-normal text-ink">Simple workspace pricing</h2>
-            <p className="text-sm text-ink-2">Sandbox pricing — no real payments required.</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border border-line bg-card rounded shadow-raised p-6 md:p-8">
-            {/* Basic Plan */}
-            <div className="space-y-6 md:pr-8 md:border-r border-line flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="flex justify-between items-baseline">
-                  <h3 className="font-serif text-2xl text-ink font-semibold">Basic</h3>
-                  <div className="text-2xl font-mono text-ink font-semibold">₹0</div>
-                </div>
-                <p className="text-sm text-ink-2">
-                  For exploratory batch checks and testing rule violations.
-                </p>
-                <ul className="space-y-2.5 text-sm text-ink-2 font-mono pt-2">
-                  <li className="flex items-center space-x-2">
-                    <span className="text-verdigris-700">✓</span>
-                    <span>Validate operation</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <span className="text-verdigris-700">✓</span>
-                    <span>3 runs per day allowance</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <span className="text-verdigris-700">✓</span>
-                    <span>Full history & issue reporting</span>
-                  </li>
-                  <li className="flex items-center space-x-2 text-ink-3">
-                    <span>✕</span>
-                    <span>Process & persist (Pro only)</span>
-                  </li>
-                </ul>
-              </div>
-              <button
-                onClick={onSignIn}
-                className="w-full py-2 px-4 text-sm font-medium border border-line bg-card hover:bg-paper-2 rounded transition-colors text-ink"
-              >
-                Sign in with Basic demo
-              </button>
-            </div>
-
-            {/* Pro Plan */}
-            <div className="space-y-6 flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="flex justify-between items-baseline">
-                  <div className="flex items-center space-x-2">
-                    <h3 className="font-serif text-2xl text-ink font-semibold">Pro</h3>
-                    <span className="px-2 py-0.5 text-xs font-mono font-medium bg-ochre-100 text-ochre-500 rounded">
-                      Standard
-                    </span>
-                  </div>
-                  <div className="text-2xl font-mono text-ink font-semibold">
-                    ₹499<span className="text-sm font-normal text-ink-3">/mo</span>
-                  </div>
-                </div>
-                <p className="text-sm text-ink-2">
-                  For teams needing automated batch transformations and persistent artifact results.
-                </p>
-                <ul className="space-y-2.5 text-sm text-ink-2 font-mono pt-2">
-                  <li className="flex items-center space-x-2">
-                    <span className="text-verdigris-700">✓</span>
-                    <span>Validate AND Process operations</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <span className="text-verdigris-700">✓</span>
-                    <span>10 runs per day allowance</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <span className="text-verdigris-700">✓</span>
-                    <span>Private blob result persistence</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <span className="text-verdigris-700">✓</span>
-                    <span>Zero-cost idempotent replays</span>
-                  </li>
-                </ul>
-              </div>
-              <button
-                onClick={onSignIn}
-                className="w-full py-2 px-4 text-sm font-medium bg-verdigris-700 hover:bg-verdigris-800 text-card rounded transition-colors"
-              >
-                Sign in with Pro demo
-              </button>
-            </div>
-          </div>
-        </section>
-
-        {/* 6. Built for Safe Sharing (Facts) */}
-        <section className="border-t border-line pt-8 space-y-6">
-          <div className="space-y-2">
-            <span className="text-xs font-mono tracking-wider uppercase text-ink-3">Guarantees</span>
-            <h2 className="font-serif text-3xl font-normal text-ink">Built for safe sharing</h2>
-            <p className="text-sm text-ink-2 max-w-2xl leading-relaxed">
-              Every request is authenticated against a verified session. We enforce hard boundaries
-              across operations, tenants, and state.
+            <p style={{ textAlign: "center", marginTop: 10, fontSize: 11.5, color: "var(--ink-3)", fontStyle: "italic" }}>
+              Sample output — rules R1–R4 shown below
             </p>
           </div>
+        </div>
+      </section>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 font-mono text-sm pt-4">
-            <div className="p-4 bg-card border border-line rounded space-y-2">
-              <div className="text-verdigris-700 font-bold">◦ ISOLATED WORKSPACES</div>
-              <p className="text-xs text-ink-2 font-sans">
-                Tenant identity comes strictly from verified session tokens. Client overrides return 400.
-              </p>
+      {/* ── RULES STRIP ── */}
+      <section style={{ borderTop: "1px solid var(--line)", borderBottom: "1px solid var(--line)", background: "var(--card)", padding: "32px 0" }}>
+        <div style={{ maxWidth: 1160, margin: "0 auto", padding: "0 32px", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 32 }}>
+          {RULES.map(r => (
+            <div key={r.id}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                <span style={{ fontSize: 10, padding: "2px 6px", background: "var(--paper-2)", border: "1px solid var(--line)", borderRadius: 4, fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: "var(--ink-2)" }}>{r.id}</span>
+                <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 12.5, fontWeight: 700, color: "var(--verdigris-700)" }}>{r.field}</span>
+              </div>
+              <div style={{ fontSize: 12.5, color: "var(--ink-3)", fontFamily: "JetBrains Mono, monospace", lineHeight: 1.6 }}>{r.desc}</div>
             </div>
-            <div className="p-4 bg-card border border-line rounded space-y-2">
-              <div className="text-verdigris-700 font-bold">◦ SAFE RETRIES</div>
-              <p className="text-xs text-ink-2 font-sans">
-                Idempotency keys prevent duplicate runs and guarantee consistent replays without extra cost.
-              </p>
+          ))}
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS ── */}
+      <section id="product" style={{ maxWidth: 1160, margin: "0 auto", padding: "80px 32px" }}>
+        <div style={{ marginBottom: 48 }}>
+          <div style={{ fontSize: 11, fontFamily: "JetBrains Mono, monospace", color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>Workflow</div>
+          <h2 style={{ fontFamily: "'DM Serif Display', Georgia, serif", fontSize: 38, fontWeight: 400, color: "var(--ink)", margin: 0 }}>How it works</h2>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 40 }}>
+          {STEPS.map(s => (
+            <div key={s.n} style={{ borderTop: "2px solid var(--line)", paddingTop: 24 }}>
+              <div style={{ fontFamily: "'DM Serif Display', Georgia, serif", fontSize: 36, color: "var(--ochre-500)", opacity: 0.6, marginBottom: 12, lineHeight: 1 }}>{s.n}</div>
+              <h3 style={{ fontSize: 16, fontWeight: 600, color: "var(--ink)", marginBottom: 10 }}>{s.title}</h3>
+              <p style={{ fontSize: 13.5, color: "var(--ink-2)", lineHeight: 1.7, margin: 0 }}>{s.body}</p>
             </div>
-            <div className="p-4 bg-card border border-line rounded space-y-2">
-              <div className="text-verdigris-700 font-bold">◦ SHARED DAILY ALLOWANCE</div>
-              <p className="text-xs text-ink-2 font-sans">
-                Atomic reservation in a single conditional SQL transaction prevents concurrency overages.
-              </p>
+          ))}
+        </div>
+      </section>
+
+      {/* ── PRICING ── */}
+      <section id="pricing" style={{ background: "var(--card)", borderTop: "1px solid var(--line)", borderBottom: "1px solid var(--line)", padding: "80px 0" }}>
+        <div style={{ maxWidth: 1160, margin: "0 auto", padding: "0 32px" }}>
+          <div style={{ marginBottom: 48 }}>
+            <div style={{ fontSize: 11, fontFamily: "JetBrains Mono, monospace", color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>Plans</div>
+            <h2 style={{ fontFamily: "'DM Serif Display', Georgia, serif", fontSize: 38, fontWeight: 400, color: "var(--ink)", margin: "0 0 8px" }}>Simple workspace pricing</h2>
+            <p style={{ fontSize: 13.5, color: "var(--ink-3)", margin: 0 }}>Sandbox pricing — no real payments in this environment.</p>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, maxWidth: 860 }}>
+            {/* Basic */}
+            <div style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 12, overflow: "hidden" }}>
+              <div style={{ padding: "28px 28px 24px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+                  <div>
+                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24, color: "var(--ink)" }}>Basic</div>
+                    <div style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 3 }}>For exploration & testing</div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 26, fontWeight: 700, color: "var(--ink)" }}>₹0</div>
+                  </div>
+                </div>
+                {[
+                  "Validate operation",
+                  "3 daily runs (shared)",
+                  "Full issue reporting",
+                  "Run history",
+                ].map(f => (
+                  <div key={f} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, fontSize: 13, color: "var(--ink-2)" }}>
+                    <span style={{ color: "var(--verdigris-700)", fontSize: 12 }}>✓</span> {f}
+                  </div>
+                ))}
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, fontSize: 13, color: "var(--ink-3)", textDecoration: "line-through" }}>
+                  <span style={{ color: "var(--line)", fontSize: 12 }}>✕</span> Process operation
+                </div>
+              </div>
+              <div style={{ padding: "0 28px 28px" }}>
+                <button className="btn btn-md btn-secondary" onClick={onSignIn} style={{ width: "100%", justifyContent: "center" }}>
+                  Sign in with Basic demo
+                </button>
+              </div>
+            </div>
+
+            {/* Pro */}
+            <div style={{ background: "var(--night)", border: "1px solid rgba(194,138,44,.2)", borderRadius: 12, overflow: "hidden" }}>
+              <div style={{ padding: "28px 28px 24px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24, color: "white" }}>Pro</span>
+                      <span style={{ fontSize: 10, padding: "2px 7px", background: "var(--ochre-500)", color: "white", borderRadius: 4, fontWeight: 700, fontFamily: "JetBrains Mono, monospace" }}>Standard</span>
+                    </div>
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 3 }}>For teams & production</div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 26, fontWeight: 700, color: "white" }}>₹499</div>
+                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>/month</div>
+                  </div>
+                </div>
+                {[
+                  "Validate + Process",
+                  "10 daily runs (shared)",
+                  "Private blob result storage",
+                  "Idempotent replays free",
+                  "Full issue reporting",
+                ].map(f => (
+                  <div key={f} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, fontSize: 13, color: "rgba(255,255,255,0.75)" }}>
+                    <span style={{ color: "var(--ochre-500)", fontSize: 12 }}>✓</span> {f}
+                  </div>
+                ))}
+              </div>
+              <div style={{ padding: "0 28px 28px" }}>
+                <button className="btn btn-md btn-primary" onClick={onSignIn} style={{ width: "100%", justifyContent: "center" }}>
+                  Sign in with Pro demo
+                </button>
+              </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* 7. FAQ Accordion */}
-        <section id="faq" className="space-y-6 border-t border-line pt-8">
-          <div className="space-y-2">
-            <span className="text-xs font-mono tracking-wider uppercase text-ink-3">FAQ</span>
-            <h2 className="font-serif text-3xl font-normal text-ink">Frequently asked questions</h2>
+      {/* ── GUARANTEES ── */}
+      <section style={{ maxWidth: 1160, margin: "0 auto", padding: "80px 32px" }}>
+        <div style={{ marginBottom: 40 }}>
+          <div style={{ fontSize: 11, fontFamily: "JetBrains Mono, monospace", color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>Guarantees</div>
+          <h2 style={{ fontFamily: "'DM Serif Display', Georgia, serif", fontSize: 38, fontWeight: 400, color: "var(--ink)", margin: 0 }}>Built for safe sharing</h2>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
+          {[
+            { label: "ISOLATED WORKSPACES", body: "Tenant identity is derived exclusively from verified session tokens. Any attempt to override tenant in request data returns 400." },
+            { label: "SAFE RETRIES", body: "Every request carries an Idempotency-Key. Identical keys return the original result without consuming a quota slot." },
+            { label: "ATOMIC QUOTA", body: "A single conditional SQL transaction reserves the daily slot. Zero overages are possible even under high concurrency." },
+          ].map(g => (
+            <div key={g.label} style={{ padding: "24px", background: "var(--card)", border: "1px solid var(--line)", borderRadius: 10 }}>
+              <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 11, fontWeight: 700, color: "var(--verdigris-700)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 10 }}>
+                ◦ {g.label}
+              </div>
+              <p style={{ fontSize: 13.5, color: "var(--ink-2)", lineHeight: 1.65, margin: 0 }}>{g.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── FAQ ── */}
+      <section id="faq" style={{ borderTop: "1px solid var(--line)", background: "var(--card)", padding: "80px 0" }}>
+        <div style={{ maxWidth: 720, margin: "0 auto", padding: "0 32px" }}>
+          <div style={{ marginBottom: 40 }}>
+            <div style={{ fontSize: 11, fontFamily: "JetBrains Mono, monospace", color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>FAQ</div>
+            <h2 style={{ fontFamily: "'DM Serif Display', Georgia, serif", fontSize: 38, fontWeight: 400, color: "var(--ink)", margin: 0 }}>Common questions</h2>
           </div>
 
-          <div className="divide-y divide-line border-t border-b border-line">
-            {[
-              {
-                q: "What counts as a run?",
-                a: "Every accepted run (status 201), whether it ultimately succeeds or encounters execution failure, uses one quota slot. Requests rejected upfront for validation or authorization errors do not debit your allowance.",
-              },
-              {
-                q: "What happens on validation failure?",
-                a: "If submitting a Validate run, the batch is accepted and returns the exact row and field-level rule issues. If submitting a Process run with any invalid row, the entire batch is rejected with HTTP 400 and zero quota is debited.",
-              },
-              {
-                q: "Can I retry safely?",
-                a: "Yes. Every request accepts an Idempotency-Key. Repeating a request with the exact same payload returns the existing run result without consuming an additional quota slot.",
-              },
-              {
-                q: "Who can submit runs?",
-                a: "Users with the Operator role can submit runs and settle pledges. Users with the Viewer role have read-only access to past runs and results.",
-              },
-              {
-                q: "What is sandbox mode?",
-                a: "TextForge runs on Azure Container Apps with synthetic demo accounts. All payments and subscriptions in Tier 2 use test vouchers like BENCH-CLEAR.",
-              },
-            ].map((faq, idx) => (
-              <div key={idx} className="py-4">
+          <div style={{ borderTop: "1px solid var(--line)" }}>
+            {FAQS.map((faq, idx) => (
+              <div key={idx} style={{ borderBottom: "1px solid var(--line)" }}>
                 <button
-                  onClick={() => toggleFaq(idx)}
-                  className="w-full flex justify-between items-center text-left text-base font-medium text-ink focus:outline-none"
+                  onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
+                  style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 0", background: "none", border: "none", cursor: "pointer", textAlign: "left", gap: 20 }}
                 >
-                  <span>{faq.q}</span>
-                  <span className="font-mono text-ink-3 text-lg">{openFaq === idx ? "−" : "+"}</span>
+                  <span style={{ fontSize: 15, fontWeight: 500, color: "var(--ink)", lineHeight: 1.4 }}>{faq.q}</span>
+                  <span style={{ fontSize: 20, color: "var(--ink-3)", lineHeight: 1, flexShrink: 0, fontFamily: "JetBrains Mono, monospace", transform: openFaq === idx ? "rotate(45deg)" : "none", transition: "transform 0.2s" }}>+</span>
                 </button>
                 {openFaq === idx && (
-                  <p className="mt-3 text-sm text-ink-2 leading-relaxed max-w-3xl">{faq.a}</p>
+                  <p style={{ fontSize: 13.5, color: "var(--ink-2)", lineHeight: 1.7, margin: "0 0 20px", animation: "slideInUp 0.2s ease-out" }}>{faq.a}</p>
                 )}
               </div>
             ))}
           </div>
-        </section>
-      </main>
+        </div>
+      </section>
 
-      {/* 8. Footer on --night */}
-      <footer className="bg-night text-paper/80 py-12 px-6 sm:px-12 border-t border-line">
-        <div className="max-w-[1160px] mx-auto w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-          <div className="space-y-1">
-            <span className="font-serif text-2xl font-bold text-paper">
-              {BRAND_NAME.toLowerCase()}
-            </span>
-            <p className="text-xs text-paper/60 font-mono">
-              Sandbox environment. Synthetic data only. Advantix × Rajalakshmi.
-            </p>
+      {/* ── FOOTER ── */}
+      <footer style={{ background: "var(--night)", borderTop: "1px solid rgba(255,255,255,0.05)", padding: "40px 0" }}>
+        <div style={{ maxWidth: 1160, margin: "0 auto", padding: "0 32px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 20 }}>
+          <div>
+            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: "white", marginBottom: 4 }}>{BRAND_NAME.toLowerCase()}</div>
+            <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.35)", fontFamily: "JetBrains Mono, monospace" }}>Sandbox environment · Synthetic data only · UC-06</div>
           </div>
-          <div className="flex space-x-6 text-xs font-mono text-paper/60">
-            <span>Lathe Spec UC-06</span>
+          <div style={{ display: "flex", gap: 24, fontSize: 11.5, fontFamily: "JetBrains Mono, monospace", color: "rgba(255,255,255,0.3)" }}>
             <span>Azure Container Apps</span>
             <span>REST API v1</span>
+            <span>Advantix × Rajalakshmi</span>
           </div>
         </div>
       </footer>
