@@ -1,0 +1,11 @@
+{
+  "operation": "validate",
+  "records": [
+    { "record_id": "T01", "text": "Hello", "repeat": 2, "mode": "UPPER" },
+    { "record_id": "T02", "text": "WORLD", "repeat": 1, "mode": "LOWER" },
+    { "record_id": "T01", "text": "Hello", "repeat": 2, "mode": "UPPER" },
+    { "record_id": "X2", "text": "", "repeat": 2, "mode": "UPPER" },
+    { "record_id": "X3", "text": "Hello", "repeat": 0, "mode": "UPPER" },
+    { "record_id": "X4", "text": "Hello", "repeat": 2, "mode": "TITLE" }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "operation": "validate",
+  "records": [
+    { "record_id": "T01", "text": "Hello", "repeat": 2, "mode": "UPPER" },
+    { "record_id": "T02", "text": "WORLD", "repeat": 1, "mode": "LOWER" }
+  ]
+}
