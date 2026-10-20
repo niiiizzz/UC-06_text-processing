@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     # Database
     SQL_AUTH_MODE: Literal["sql", "msi", "sqlite"] = "sql"
     SQL_SERVER: str = "localhost"
-    SQL_DATABASE: str = "lathe"
+    SQL_DATABASE: str = "textforge"
     SQL_USER: str = "sa"
     SQL_PASSWORD: str = ""
     SQL_PORT: int = 1433

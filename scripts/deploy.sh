@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# scripts/deploy.sh — Deploy Lathe to Azure sandbox
+# scripts/deploy.sh — Deploy TextForge to Azure sandbox
 ENV="dev"
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -24,7 +24,7 @@ echo "[*] Image tag: $IMAGE_TAG"
 # 2. Build and push image via az acr build
 ACR_NAME=$(grep 'acr_name' "infra/env/${ENV}.tfvars" | cut -d'=' -f2 | tr -d ' "')
 echo "[*] Building container image in ACR: $ACR_NAME..."
-az acr build --registry "$ACR_NAME" --image "lathe:${IMAGE_TAG}" .
+az acr build --registry "$ACR_NAME" --image "textforge:${IMAGE_TAG}" .
 
 # 3. Apply migrations
 echo "[*] Applying database migrations..."

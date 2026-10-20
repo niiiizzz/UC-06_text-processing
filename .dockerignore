@@ -1,0 +1,36 @@
+# Never copy secrets or local dev files into the image
+.env
+.env.*
+!.env.example
+
+# Git history
+.git
+.gitignore
+
+# Python caches
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+*.db
+*.db-shm
+*.db-wal
+
+# Local dev / editor
+.vscode
+.idea
+*.log
+
+# Test outputs & evidence
+evidence/
+tests/
+
+# Node modules (rebuilt in image)
+web/node_modules
+web/dist
+
+# Terraform state
+infra/.terraform
+infra/*.tfstate
+infra/*.tfstate.backup

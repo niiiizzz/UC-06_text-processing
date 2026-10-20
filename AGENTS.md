@@ -1,4 +1,4 @@
-# 06 · AGENTS — How agents work on Lathe
+# 06 · AGENTS — How agents work on TextForge
 
 > Copy this file to the repo root as `AGENTS.md` so Antigravity (and any other agent tool) loads it automatically.
 > Companion: `SKILLS.md` (engineering playbook) and `skills/text-tools/SKILL.md` (ops runbook for deploy/verify).
@@ -8,7 +8,7 @@
 
 ## 1. Mission
 
-Ship **Lathe** to the Azure dev sandbox so that all twelve acceptance checks (A01–A12) pass with evidence, then the product shell. Correctness and tenant safety outrank polish. Read `docs/01_PRD.md` first.
+Ship **TextForge** to the Azure dev sandbox so that all twelve acceptance checks (A01–A12) pass with evidence, then the product shell. Correctness and tenant safety outrank polish. Read `docs/01_PRD.md` first.
 
 ## 2. Context loading order (every new agent session)
 

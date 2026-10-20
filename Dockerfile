@@ -8,7 +8,7 @@ WORKDIR /web
 COPY web/package*.json ./
 RUN npm ci || npm install
 COPY web/ ./
-RUN npm run build || (mkdir -p dist && echo '<!DOCTYPE html><html><head><title>Lathe</title></head><body><div id="root">Lathe Product Shell</div></body></html>' > dist/index.html)
+RUN npm run build || (mkdir -p dist && echo '<!DOCTYPE html><html><head><title>TextForge</title></head><body><div id="root">TextForge</div></body></html>' > dist/index.html)
 
 # Stage 2: Python Backend Runtime
 FROM python:3.12-slim-bookworm
@@ -41,6 +41,11 @@ COPY --from=frontend-builder /web/dist ./app/static
 
 ENV PORT=8000
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
+
+# Non-root user for security (matches docs)
+RUN useradd -r -u 10001 textforge && chown -R textforge /app
+USER textforge
 
 EXPOSE 8000
 

@@ -40,7 +40,7 @@ variable "sql_server_fqdn" {
 
 variable "sql_database_name" {
   type        = string
-  default     = "lathe"
+  default     = "textforge"
   description = "SQL database name"
 }
 

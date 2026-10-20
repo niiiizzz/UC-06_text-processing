@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.errors import LatheError, lathe_error_handler
+from app.errors import TextForgeError, textforge_error_handler
 from app.middleware import RequestIdAndTenantOverrideMiddleware
 from app.routers import health, auth, tools, subscription, runs
 
@@ -15,7 +15,7 @@ def create_app() -> FastAPI:
     )
 
     # Error envelope exception handler
-    app.add_exception_handler(LatheError, lathe_error_handler)
+    app.add_exception_handler(TextForgeError, textforge_error_handler)
 
     # Core middleware (Request ID + Tenant Override Guard)
     app.add_middleware(RequestIdAndTenantOverrideMiddleware)

@@ -32,10 +32,10 @@ resource "azurerm_storage_container" "results" {
 }
 
 # ==============================================================================
-# SCORED RESOURCE 2/2: Azure Container App for Lathe monolith API + built web SPA
+# SCORED RESOURCE 2/2: Azure Container App for TextForge monolith API + built web SPA
 # ==============================================================================
 resource "azurerm_container_app" "api" {
-  name                         = "lathe-${var.env}"
+  name                         = "textforge-${var.env}"
   resource_group_name          = data.azurerm_resource_group.rg.name
   container_app_environment_id = data.azurerm_container_app_environment.cae.id
   revision_mode                = "Single"
@@ -70,7 +70,7 @@ resource "azurerm_container_app" "api" {
 
     container {
       name   = "api"
-      image  = "${data.azurerm_container_registry.acr.login_server}/lathe:${var.image_tag}"
+      image  = "${data.azurerm_container_registry.acr.login_server}/textforge:${var.image_tag}"
       cpu    = 0.5
       memory = "1Gi"
 
