@@ -855,7 +855,6 @@ export function App() {
           onClose={() => setShowUpgradeModal(false)}
           onSuccess={async () => {
             await loadSubscription();
-            await loadTools();
           }}
           currentPlan={sub?.plan}
           userRole={sub?.role}

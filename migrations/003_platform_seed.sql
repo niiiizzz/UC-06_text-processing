@@ -3,10 +3,10 @@ BEGIN
   CREATE TABLE dbo.Tenants (
     tenant_id            NVARCHAR(40)  NOT NULL CONSTRAINT PK_Tenants PRIMARY KEY,
     display_name         NVARCHAR(80)  NOT NULL,
-    plan                 VARCHAR(10)   NOT NULL,                 -- Basic | Pro
+    [plan]               VARCHAR(10)   NOT NULL,                 -- Basic | Pro
     subscription_status  VARCHAR(10)   NOT NULL,                 -- Active | Suspended
     period_end           DATE          NULL,                     -- cosmetic, shown in UI
-    CONSTRAINT CK_Tenants_plan   CHECK (plan IN ('Basic','Pro')),
+    CONSTRAINT CK_Tenants_plan   CHECK ([plan] IN ('Basic','Pro')),
     CONSTRAINT CK_Tenants_status CHECK (subscription_status IN ('Active','Suspended'))
   );
 END;

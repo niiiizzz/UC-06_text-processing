@@ -210,22 +210,51 @@ export function UpgradeModal({
               </span>
             </div>
 
-            <button
-              onClick={onClose}
-              style={{
-                background: "none",
-                border: "none",
-                fontSize: 18,
-                color: "var(--ink-3)",
-                cursor: "pointer",
-                padding: "6px 10px",
-                borderRadius: 6,
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "var(--ink)")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "var(--ink-3)")}
-            >
-              ✕
-            </button>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <button
+                onClick={onClose}
+                style={{
+                  background: "none",
+                  border: "1px solid var(--line)",
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: "var(--ink-2)",
+                  cursor: "pointer",
+                  padding: "5px 14px",
+                  borderRadius: 6,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                  transition: "all 0.15s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "var(--paper-2)";
+                  e.currentTarget.style.color = "var(--ink)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "none";
+                  e.currentTarget.style.color = "var(--ink-2)";
+                }}
+              >
+                ← Back
+              </button>
+              <button
+                onClick={onClose}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: 18,
+                  color: "var(--ink-3)",
+                  cursor: "pointer",
+                  padding: "6px 10px",
+                  borderRadius: 6,
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "var(--ink)")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "var(--ink-3)")}
+              >
+                ✕
+              </button>
+            </div>
           </div>
 
           <div style={{ padding: "36px 36px 40px" }}>
@@ -452,12 +481,24 @@ export function UpgradeModal({
                     </span>
                   </div>
 
-                  <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 16 }}>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 4, flexWrap: "wrap" }}>
                     <span style={{ fontSize: 34, fontWeight: 700, color: "#ffffff", fontFamily: "JetBrains Mono, monospace" }}>
-                      ₹499
+                      {billingCycle === "yearly" ? "₹399" : "₹499"}
                     </span>
-                    <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>/ month</span>
+                    <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>
+                      / month{billingCycle === "yearly" ? ", billed annually" : ""}
+                    </span>
+                    {billingCycle === "yearly" && (
+                      <span style={{ fontSize: 10.5, fontWeight: 700, background: "rgba(194,138,44,0.25)", color: "var(--ochre-500)", padding: "2px 8px", borderRadius: 999, border: "1px solid rgba(194,138,44,0.4)" }}>
+                        Save 20%
+                      </span>
+                    )}
                   </div>
+                  {billingCycle === "yearly" && (
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", textDecoration: "line-through", marginBottom: 12 }}>
+                      ₹499 / month
+                    </div>
+                  )}
 
                   <p style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.5, marginBottom: 20 }}>
                     High-throughput text transformation with permanent cryptographic proof logging in Azure Blob Storage.

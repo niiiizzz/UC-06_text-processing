@@ -122,7 +122,31 @@ export function LoginPage({ onLoginSuccess, onCancel }: LoginPageProps) {
         <div style={{ width: "100%", maxWidth: 420 }}>
 
           {/* Header */}
-          <div style={{ marginBottom: 28 }}>
+          <div style={{ marginBottom: 24 }}>
+            <button
+              type="button"
+              onClick={onCancel}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "6px 12px",
+                marginBottom: 16,
+                background: "var(--paper-2)",
+                border: "1px solid var(--line)",
+                borderRadius: 6,
+                fontSize: 12.5,
+                fontWeight: 500,
+                color: "var(--ink-2)",
+                cursor: "pointer",
+                fontFamily: "Inter, sans-serif",
+                transition: "all 0.15s",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--ink-3)"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--line)"; }}
+            >
+              ← Back to home
+            </button>
             <h2 style={{ fontFamily: "'DM Serif Display', Georgia, serif", fontSize: 28, fontWeight: 400, color: "var(--ink)", margin: "0 0 6px" }}>
               Welcome back
             </h2>

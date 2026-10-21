@@ -35,6 +35,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app/ ./app
 COPY migrations/ ./migrations
 COPY scripts/ ./scripts
+COPY lathe_dev.db ./lathe_dev.db
 
 # Copy built frontend assets into app/static
 COPY --from=frontend-builder /web/dist ./app/static
